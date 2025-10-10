@@ -1,0 +1,1 @@
+Originally intended to be a Discord bot that emulates Riichi Mahjong gameplay. Now aiming to be a tutorial bot, allowing users to form hands and explaining conditions behind each hand and point value.
