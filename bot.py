@@ -14,10 +14,13 @@ from tiles import *
 #or
 #Write the game from scratch and start with tile array and yaku
 
+
+intents = discord.Intents.default()
+intents.message_content = True
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
-client = discord.Client()
+client = discord.Client(intents=intents)
 
 @client.event
 async def on_ready():
