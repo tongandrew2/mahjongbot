@@ -75,8 +75,8 @@ async def on_message(message):
             await message.author.send('Your hand: ' + TilesConverter.to_one_line_string(tiles))
 
 
-    if message.content.startswith('$hello'):
-        await message.author.send('hi there this is a dm, show me a hand in string form')
+    if message.content.startswith('$calculatehand'):
+        await message.author.send('Hi! Please input a winning hand in string form.')
 
         def check(hand):
             return hand.author == message.author
@@ -88,21 +88,33 @@ async def on_message(message):
         print(givenhand)
 
 
-        await message.author.send('what tile did the hand win with?')
+        await message.author.send('What tile did the hand win with?')
         msgtwo = await client.wait_for('message', check=check)
         win_tile = TilesConverter.one_line_string_to_136_array(msgtwo.content)[0]
         print(win_tile)
 
-        result = calculator.estimate_hand_value(givenhand, win_tile)
+        await message.author.send('Please input any melds (e.g. Pon, Chi, Kan) that the hand used.')
+        msgthree = await client.wait_for('message', check=check)
+        melds = []
+        meld_tiles = TilesConverter.one_line_string_to_136_array(msgthree.content)
+        meld = Meld("chi", meld_tiles)
+        print(meld)
+        melds.append(meld)
 
-        await message.author.send(str(result.han) + " " + str(result.fu))
-        await message.author.send(str(result.cost['main']))
-        await message.author.send(result.yaku)
+
+        result = calculator.estimate_hand_value(givenhand, win_tile,melds)
+
+        await message.author.send("Han: " + str(result.han))
+        await message.author.send("Fu: " + str(result.fu))
+        await message.author.send("Points:" + str(result.cost['main']))
+        await message.author.send("Yaku:")
+        for yaku in result.yaku:
+            await message.author.send(yaku)
         for fu_item in result.fu_details:
-            await message.channel.send(fu_item)
+            await message.author.send(fu_item)
 
 
-    if message.content.startswith('$calculate'):
+    if message.content.startswith('$testcalculation'):
         calculator = HandCalculator()
 
         # we had to use all 14 tiles in that array
@@ -110,6 +122,7 @@ async def on_message(message):
         win_tile = TilesConverter.string_to_136_array(sou='4')[0]
 
         result = calculator.estimate_hand_value(tiles, win_tile)
+
 
         await message.channel.send(str(result.han) + " " + str(result.fu))
         await message.channel.send(str(result.cost['main']))
