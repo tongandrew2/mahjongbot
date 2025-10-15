@@ -93,13 +93,25 @@ async def on_message(message):
         win_tile = TilesConverter.one_line_string_to_136_array(msgtwo.content)[0]
         print(win_tile)
 
-        await message.author.send('Please input any melds (e.g. Pon, Chi, Kan) that the hand used.')
-        msgthree = await client.wait_for('message', check=check)
+
+        #add a failsafe for incorrect inputs
+        await message.author.send('Please input any melds (e.g. Pon, Chi, Kan) that the hand used. Enter Done when finished.')
         melds = []
-        meld_tiles = TilesConverter.one_line_string_to_136_array(msgthree.content)
-        meld = Meld("chi", meld_tiles)
-        print(meld)
-        melds.append(meld)
+        melds_textform = []
+        while True:
+            msgthree = await client.wait_for('message', check=check)
+            if msgthree.content == "Done":
+                break
+
+            #add failsafe here
+            melds_textform.append(msgthree.content)
+            meld_tiles = TilesConverter.one_line_string_to_136_array(msgthree.content)
+            meld = Meld()
+            meld.tiles = meld_tiles
+            await message.author.send('Melds:')
+            for meld_textform in  melds_textform:
+                await message.author.send(meld_textform)
+            melds.append(meld)
 
 
         result = calculator.estimate_hand_value(givenhand, win_tile,melds)
