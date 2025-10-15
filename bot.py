@@ -83,17 +83,22 @@ async def on_message(message):
 
         # Mahjong preset calculator
         calculator = HandCalculator()
-        msg = await client.wait_for('message', check=check)
-        givenhand = TilesConverter.one_line_string_to_136_array(msg.content)
-        print(givenhand)
+        while True:
+            msg = await client.wait_for('message', check=check)
+            try:
+                givenhand = TilesConverter.one_line_string_to_136_array(msg.content)
+                if len(givenhand) != 14:
+                    await message.author.send("The winning hand must have 14 tiles. Try again!")
+                else:
+                    break
+            except:
+                await message.author.send("The hand format is invalid. Try again!")
 
 
         await message.author.send('What tile did the hand win with?')
         msgtwo = await client.wait_for('message', check=check)
         win_tile = TilesConverter.one_line_string_to_136_array(msgtwo.content)[0]
         print(win_tile)
-
-
         #add a failsafe for incorrect inputs
         await message.author.send('Please input any melds (e.g. Pon, Chi, Kan) that the hand used. Enter Done when finished.')
         melds = []
@@ -115,15 +120,17 @@ async def on_message(message):
 
 
         result = calculator.estimate_hand_value(givenhand, win_tile,melds)
-
-        await message.author.send("Han: " + str(result.han))
-        await message.author.send("Fu: " + str(result.fu))
-        await message.author.send("Points:" + str(result.cost['main']))
-        await message.author.send("Yaku:")
-        for yaku in result.yaku:
-            await message.author.send(yaku)
-        for fu_item in result.fu_details:
-            await message.author.send(fu_item)
+        if result.han == 0:
+            await message.author.send("This hand does not have a yaku. Try again!")
+        else:
+            await message.author.send("Han: " + str(result.han))
+            await message.author.send("Fu: " + str(result.fu))
+            await message.author.send("Points:" + str(result.cost['main']))
+            await message.author.send("Yaku:")
+            for yaku in result.yaku:
+                await message.author.send(yaku)
+            for fu_item in result.fu_details:
+                await message.author.send(fu_item)
 
 
     if message.content.startswith('$testcalculation'):
