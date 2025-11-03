@@ -83,6 +83,7 @@ async def on_message(message):
 
         # Mahjong preset calculator
         calculator = HandCalculator()
+        handConfig = HandConfig()
         while True:
             msg = await client.wait_for('message', check=check)
             try:
@@ -114,14 +115,21 @@ async def on_message(message):
             meld = Meld()
             meld.tiles = meld_tiles
             await message.author.send('Melds:')
-            for meld_textform in  melds_textform:
+            for meld_textform in melds_textform:
                 await message.author.send(meld_textform)
             melds.append(meld)
 
+        await message.author.send('Was this hand won by Tsumo or Ron?')
+        msgfour = await client.wait_for('message', check=check)
+        if(msgfour.content.lower() == 'tsumo'):
+            handConfig.is_tsumo = True
+        else:
+            pass
 
-        result = calculator.estimate_hand_value(givenhand, win_tile,melds)
+
+        result = calculator.estimate_hand_value(tiles=givenhand, win_tile=win_tile, melds=melds, config=handConfig)
         if result.han == 0:
-            await message.author.send("This hand does not have a yaku. Try again!")
+            await message.author.send("This hand does not have a yaku.")
         else:
             await message.author.send("Han: " + str(result.han))
             await message.author.send("Fu: " + str(result.fu))
@@ -139,8 +147,8 @@ async def on_message(message):
         # we had to use all 14 tiles in that array
         tiles = TilesConverter.string_to_136_array(man='22444', pin='333567', sou='444')
         win_tile = TilesConverter.string_to_136_array(sou='4')[0]
-
-        result = calculator.estimate_hand_value(tiles, win_tile)
+        config
+        result = calculator.estimate_hand_value(tiles,win_tile)
 
 
         await message.channel.send(str(result.han) + " " + str(result.fu))
