@@ -110,14 +110,29 @@ async def on_message(message):
                 break
 
             #add failsafe here
+            #1. meld length incorrect
+            #2. meld shape incorrect (not chi, pon or kan)
+            #3. meld not in hand
+
             melds_textform.append(msgthree.content)
             meld_tiles = TilesConverter.one_line_string_to_136_array(msgthree.content)
-            meld = Meld()
-            meld.tiles = meld_tiles
-            await message.author.send('Melds:')
-            for meld_textform in melds_textform:
-                await message.author.send(meld_textform)
-            melds.append(meld)
+            print(meld_tiles)
+            print(givenhand)
+            if len(meld_tiles) < 3 or len(meld_tiles) > 4:
+                await message.author.send('Melds can only be 3 or 4 tiles long. Try again!')
+            elif meld_tiles[1] - meld_tiles[0] != 1 and meld_tiles[1] - meld_tiles[0] != 4:
+                await message.author.send('This is not a valid meld. Try again!')
+            elif set(givenhand).union(set(meld_tiles)) != set(givenhand):
+                await message.author.send('This meld is not in the hand. Try again!')
+
+            else:
+                await message.author.send(meld_tiles)
+                meld = Meld()
+                meld.tiles = meld_tiles
+                await message.author.send('Melds:')
+                for meld_textform in melds_textform:
+                    await message.author.send(meld_textform)
+                melds.append(meld)
 
         await message.author.send('Was this hand won by Tsumo or Ron?')
         msgfour = await client.wait_for('message', check=check)
