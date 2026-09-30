@@ -7,8 +7,10 @@ from mahjong.meld import Meld
 import discord
 from dotenv import load_dotenv
 from discord.ext import commands
-from game import *
-from tiles import *
+import game
+import tiles
+import scoring
+import melds
 
 #Use the API entirely and just focus on making a fully functional game
 #or
@@ -80,10 +82,7 @@ async def on_message(message):
 
         def check(hand):
             return hand.author == message.author
-
-        # Mahjong preset calculator
-        calculator = HandCalculator()
-        handConfig = HandConfig()
+        
         while True:
             msg = await client.wait_for('message', check=check)
             try:
@@ -102,47 +101,44 @@ async def on_message(message):
         print(win_tile)
         #add a failsafe for incorrect inputs
         await message.author.send('Please input any melds (e.g. Pon, Chi, Kan) that the hand used. Enter Done when finished.')
-        melds = []
-        melds_textform = []
+        hand_melds = []
+        hand_melds_textform = []
         while True:
             msgthree = await client.wait_for('message', check=check)
             if msgthree.content == "Done":
                 break
 
-            #add failsafe here
-            #1. meld length incorrect
-            #2. meld shape incorrect (not chi, pon or kan)
-            #3. meld not in hand
-
-            melds_textform.append(msgthree.content)
             meld_tiles = TilesConverter.one_line_string_to_136_array(msgthree.content)
             print(meld_tiles)
             print(givenhand)
-            if len(meld_tiles) < 3 or len(meld_tiles) > 4:
-                await message.author.send('Melds can only be 3 or 4 tiles long. Try again!')
-            elif meld_tiles[1] - meld_tiles[0] != 1 and meld_tiles[1] - meld_tiles[0] != 4:
-                await message.author.send('This is not a valid meld. Try again!')
-            elif set(givenhand).union(set(meld_tiles)) != set(givenhand):
-                await message.author.send('This meld is not in the hand. Try again!')
+
+
+            meld_type = melds.is_valid_meld(meld_tiles)
+
+            if(meld_type == None):
+                 await message.author.send('This is not a valid meld. Try again!')
 
             else:
-                await message.author.send(meld_tiles)
-                meld = Meld()
-                meld.tiles = meld_tiles
+                hand_melds_textform.append(msgthree.content)
+                #the meld needs to return type!
+                #await message.author.send(meld_tiles)
+                hand_melds.append(melds.create_meld(meld_tiles, meld_type))
                 await message.author.send('Melds:')
-                for meld_textform in melds_textform:
+                for meld_textform in hand_melds_textform:
                     await message.author.send(meld_textform)
-                melds.append(meld)
 
+        is_tsumo = False
         await message.author.send('Was this hand won by Tsumo or Ron?')
         msgfour = await client.wait_for('message', check=check)
         if(msgfour.content.lower() == 'tsumo'):
-            handConfig.is_tsumo = True
+            is_tsumo = True
         else:
             pass
 
 
-        result = calculator.estimate_hand_value(tiles=givenhand, win_tile=win_tile, melds=melds, config=handConfig)
+        result = scoring.calculate_hand_score(givenhand, win_tile, hand_melds, is_tsumo)
+
+
         if result.han == 0:
             await message.author.send("This hand does not have a yaku.")
         else:
@@ -162,7 +158,6 @@ async def on_message(message):
         # we had to use all 14 tiles in that array
         tiles = TilesConverter.string_to_136_array(man='22444', pin='333567', sou='444')
         win_tile = TilesConverter.string_to_136_array(sou='4')[0]
-        config
         result = calculator.estimate_hand_value(tiles,win_tile)
 
 
