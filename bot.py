@@ -101,10 +101,23 @@ async def on_message(message):
 
 
         await message.author.send('What tile did the hand win with?')
-        msgtwo = await client.wait_for('message', check=check)
-        win_tile = TilesConverter.one_line_string_to_136_array(msgtwo.content)[0]
-        print(win_tile)
+        while True:
+            msgtwo = await client.wait_for('message', check=check)
+            win_tile = parse_tiles(msgtwo.content)
+            print(givenhand)
+            print(win_tile)
+            if win_tile is None:
+                await message.author.send("Invalid tile format.")
+                continue
+            if win_tile[0] not in givenhand:
+                await message.author.send("This tile is not in your specified hand.")
+                continue
+            break
+
+        
         #add a failsafe for incorrect inputs
+
+
         await message.author.send('Please input any melds (e.g. Pon, Chi, Kan) that the hand used. Enter Done when finished.')
         hand_melds = []
         hand_melds_textform = []
@@ -140,7 +153,11 @@ async def on_message(message):
         result = scoring.calculate_hand_score(givenhand, win_tile, hand_melds, is_tsumo)
 
 
-        if result.han == 0:
+        #temporary error check for erroneous hand calculation
+        if result.error is not None:
+            await message.author.send(result.error)
+            
+        elif result.han == 0:
             await message.author.send("This hand does not have a yaku.")
         else:
             await message.author.send("Han: " + str(result.han))

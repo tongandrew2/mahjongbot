@@ -14,9 +14,10 @@ def shuffle_tiles(tiles):
 #If the string can be converted into an array of tiles, return it
 #otherwise return None
 
-#bugs to catch:
-#89z are not valid tiles but are not caught by this parser
-#  
+#minor bugs to catch for parse_tiles:
+#1. 89z are not valid tiles but will pass
+#2. invalid tile strings that contain valid chars will pass
+
 
 def parse_tiles(tile_string):
     valid_chars = set("123456789mpsz")
@@ -24,7 +25,7 @@ def parse_tiles(tile_string):
     if not tile_string:
         return None
 
-    if any(char not in valid_chars for char in text.lower()):
+    if any(char not in valid_chars for char in tile_string.lower()):
         return None
     
     try:
@@ -69,3 +70,5 @@ def draw_tile(hand, tiles):
 
 def discard_tile(hand, tile):
     hand.remove(tile)
+
+
