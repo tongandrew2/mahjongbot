@@ -101,18 +101,14 @@ async def on_message(message):
         await message.author.send('Please input any melds (e.g. Pon, Chi, Kan) that the hand used. Enter Done when finished.')
         hand_melds = []
         hand_melds_textform = []
+
         while True:
             msgthree = await client.wait_for('message', check=check)
             if msgthree.content == "Done":
                 break
 
             meld_tiles = TilesConverter.one_line_string_to_136_array(msgthree.content)
-            print(meld_tiles)
-            print(givenhand)
-
-
             meld_type = melds.is_valid_meld(meld_tiles)
-
             if(meld_type == None):
                  await message.author.send('This is not a valid meld. Try again!')
 
