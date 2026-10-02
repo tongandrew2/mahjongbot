@@ -6,7 +6,7 @@ import discord
 from dotenv import load_dotenv
 from discord.ext import commands
 import game
-import tiles
+from tiles import * #change this later to import tiles after refactoring code
 import scoring
 import melds
 
@@ -83,14 +83,21 @@ async def on_message(message):
         
         while True:
             msg = await client.wait_for('message', check=check)
-            try:
-                givenhand = TilesConverter.one_line_string_to_136_array(msg.content)
-                if len(givenhand) != 14:
-                    await message.author.send("The winning hand must have 14 tiles. Try again!")
-                else:
-                    break
-            except:
-                await message.author.send("The hand format is invalid. Try again!")
+            givenhand = parse_tiles(msg.content)
+            if givenhand is None:
+                await message.author.send("Invalid tile format.")
+                continue
+
+            if len(givenhand) != 14:
+                await message.author.send("A hand must contain 14 tiles.")
+                continue
+
+            if is_valid_tile_set(givenhand) == False:
+                await message.author.send("A hand must only contain 4 of each tile at most.")
+                continue
+
+            #If none of the failure conditions are met, exit the loop
+            break
 
 
         await message.author.send('What tile did the hand win with?')
